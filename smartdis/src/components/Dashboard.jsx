@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { MinHeap } from '../utils/MinHeap';
+import { BST } from '../utils/BST';
 import { catIcon, StatusBadge, DaysChip, PriceCell, ExpiryBar } from './shared';
 import AddProductModal from './AddProductModal';
 
 export default function Dashboard() {
-  const { getAllSorted, getStats, getNextExpiring, getExpiringIn, removeExpired, removeProduct, searchById, searchByName } = useProducts();
+  const { getAllSorted, getStats, getNextExpiring, getExpiringIn, removeExpired, removeProduct } = useProducts();
   const [showAdd, setShowAdd] = useState(false);
   const [banner, setBanner]   = useState(null);
 
@@ -15,10 +16,9 @@ export default function Dashboard() {
   const [results,  setResults] = useState(null);
   const [searched, setSearched]= useState(false);
 
-  const stats   = getStats();
-  const peak    = getNextExpiring();
-  const critical = getExpiringIn(3);
-  const topRows  = getAllSorted().slice(0, 6);
+  const stats  = getStats();
+  const peak   = getNextExpiring();
+  const topRows = getAllSorted().slice(0, 6);
 
   const clearExpired = () => {
     const n = removeExpired();
@@ -28,11 +28,17 @@ export default function Dashboard() {
 
   const runSearch = () => {
     if (!query.trim()) return;
+    // Build a fresh BST from the current heap each search
+    const allProducts = getAllSorted();
     if (mode === 'id') {
-      const r = searchById(query.trim());
-      setResults(r ? [r] : []);
+      // BST keyed by ID — O(log n) exact match
+      const tree = BST.fromArray(allProducts, 'id');
+      const hit  = tree.searchById(query.trim());
+      setResults(hit ? [hit] : []);
     } else {
-      setResults(searchByName(query.trim()));
+      // BST keyed by name — O(n) in-order substring search (alphabetical results)
+      const tree = BST.fromArray(allProducts, 'name');
+      setResults(tree.searchByName(query.trim()));
     }
     setSearched(true);
   };
@@ -228,10 +234,14 @@ function StatCard({ icon, label, val, col }) {
 }
 
 function PeakCard({ product }) {
-  const days = MinHeap.daysRemaining(product.expiryDate);
-  const pct  = MinHeap.computeDiscount(days, product.category, product.manualDiscount);
-  const disc = MinHeap.discountedPrice(product.price, pct);
-  const isManual = product.manualDiscount !== undefined && product.manualDiscount !== null && product.manualDiscount !== '';
+  const { categoryDiscounts } = useProducts();
+  const days   = MinHeap.daysRemaining(product.expiryDate);
+  const cd     = categoryDiscounts?.[product.category] || {};
+  const catManual = cd.all;
+  const pct    = MinHeap.computeDiscount(days, product.category, product.manualDiscount, catManual);
+  const disc   = MinHeap.discountedPrice(product.price, pct);
+  const isManual   = product.manualDiscount !== undefined && product.manualDiscount !== null && product.manualDiscount !== '';
+  const isCatMan   = !isManual && (catManual !== undefined && catManual !== null && catManual !== '');
 
   return (
     <div style={{ background:'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(99,102,241,0.08))', border:'1px solid rgba(239,68,68,0.2)', borderRadius:12, padding:'1.25rem' }}>
@@ -247,9 +257,16 @@ function PeakCard({ product }) {
           ['EXPIRY',    <DaysChip days={days} />],
           ['QUANTITY',  <span style={{ fontWeight:700 }}>{product.quantity} units</span>],
           ['ORIGINAL',  <span style={{ fontWeight:700 }}>LKR {product.price.toFixed(2)}</span>],
-          pct > 0
-            ? [isManual ? 'MANUAL DISC' : 'DISCOUNTED', <span style={{ display:'flex', alignItems:'center', gap:6 }}><span className="discount-tag" style={{ background: isManual ? '#6366f1' : 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>-{pct}%</span><span style={{ color:'#86efac', fontWeight:700 }}>LKR {disc.toFixed(2)}</span></span>]
-            : ['DISCOUNT',   <span style={{ color:'#475569' }}>None</span>],
+          ['DISCOUNT',
+            pct > 0
+              ? <span style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
+                  <span className="discount-tag" style={{ background: isManual ? '#6366f1' : isCatMan ? '#8b5cf6' : 'linear-gradient(135deg,#f59e0b,#ef4444)' }}>
+                    {isManual ? 'MANUAL' : isCatMan ? 'Discount' : `-${pct}%`}
+                  </span>
+                  <span style={{ color:'#86efac', fontWeight:700 }}>LKR {disc.toFixed(2)}</span>
+                </span>
+              : <span style={{ color:'#475569' }}>None</span>
+          ],
         ].map(([lbl, node]) => (
           <div key={lbl} style={{ background:'rgba(0,0,0,0.25)', borderRadius:8, padding:'0.625rem' }}>
             <div style={{ fontSize:'0.65rem', color:'#64748b', marginBottom:3 }}>{lbl}</div>

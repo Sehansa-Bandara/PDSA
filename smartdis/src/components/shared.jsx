@@ -32,30 +32,44 @@ export function PriceCell({ product, onlyOriginal = false }) {
   const { categoryDiscounts } = useProducts?.() || {};
   const days = MinHeap.daysRemaining(product.expiryDate);
   const cd = categoryDiscounts?.[product.category] || {};
-  
-  let catManual = cd.all;
-  if (days >= 0 && days <= 30 && cd.month1 !== null && cd.month1 !== undefined) catManual = cd.month1;
-  if (days > 30 && days <= 60 && cd.month2 !== null && cd.month2 !== undefined) catManual = cd.month2;
-
-  const pct  = product.discountEnabled 
-    ? MinHeap.computeDiscount(days, product.category, product.manualDiscount, catManual) 
-    : 0;
-  
-  const isProductManual = product.manualDiscount !== undefined && product.manualDiscount !== null && product.manualDiscount !== '';
-  const isCategoryManual = !isProductManual && (catManual !== undefined && catManual !== null && catManual !== '');
 
   if (onlyOriginal) {
     return <span style={{ fontWeight:600 }}>LKR {product.price.toFixed(2)}</span>;
   }
 
+  // Expired items — no discount applies
+  if (days < 0) {
+    return (
+      <span style={{ display:'flex', alignItems:'center', gap:6 }}>
+        <span className="discount-tag" style={{ background:'#334155', color:'#94a3b8', fontSize:'0.65rem' }}>
+          EXPIRED
+        </span>
+        <span style={{ color:'#64748b', fontWeight:600, textDecoration:'line-through' }}>
+          LKR {product.price.toFixed(2)}
+        </span>
+      </span>
+    );
+  }
+
+  let catManual = cd.all;
+  if (days <= 30 && cd.month1 !== null && cd.month1 !== undefined) catManual = cd.month1;
+  if (days > 30 && days <= 60 && cd.month2 !== null && cd.month2 !== undefined) catManual = cd.month2;
+
+  const pct = product.discountEnabled
+    ? MinHeap.computeDiscount(days, product.category, product.manualDiscount, catManual)
+    : 0;
+
+  const isProductManual  = product.manualDiscount !== undefined && product.manualDiscount !== null && product.manualDiscount !== '';
+  const isCategoryManual = !isProductManual && (catManual !== undefined && catManual !== null && catManual !== '');
+
   if (pct > 0) {
     const dp = MinHeap.discountedPrice(product.price, pct);
     return (
       <span style={{ display:'flex', alignItems:'center', gap:6 }}>
-        <span className="discount-tag" style={{ 
-          background: isProductManual ? '#6366f1' : isCategoryManual ? '#8b5cf6' : 'linear-gradient(135deg, #f59e0b, #ef4444)' 
+        <span className="discount-tag" style={{
+          background: isProductManual ? '#6366f1' : isCategoryManual ? '#8b5cf6' : 'linear-gradient(135deg, #f59e0b, #ef4444)'
         }}>
-          {isProductManual ? 'MANUAL' : isCategoryManual ? 'CAT MAN' : `-${pct}%`}
+          {isProductManual ? 'MANUAL' : isCategoryManual ? 'Discount' : `-${pct}%`}
         </span>
         <span style={{ color:'#86efac', fontWeight:700 }}>LKR {dp.toFixed(2)}</span>
       </span>
