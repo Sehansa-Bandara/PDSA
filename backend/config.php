@@ -1,7 +1,7 @@
-<?php
+<?php // create the connection in database
 $host = 'localhost';
 $user = 'root';
-$pass = ''; // Default XAMPP password is empty
+$pass = ''; 
 $db = 'smartdiss';
 
 try {

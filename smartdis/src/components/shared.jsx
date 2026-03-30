@@ -2,7 +2,7 @@
 import { MinHeap } from '../utils/MinHeap';
 import { useProducts } from '../context/ProductContext';
 
-export const CATEGORY_ICONS = {
+export const CATEGORY_ICONS = { //Returns the emoji icon for a product category.
   Dairy:'🥛', Meat:'🥩', Produce:'🥦', Bakery:'🍞', Seafood:'🐟',
   Deli:'🥪', Beverages:'🧃', Canned:'🥫', Frozen:'🧊', Snacks:'🍪', Other:'📦',
 };
@@ -11,7 +11,7 @@ export const CATEGORIES = Object.keys(CATEGORY_ICONS);
 
 export function catIcon(cat) { return CATEGORY_ICONS[cat] ?? '📦'; }
 
-export function StatusBadge({ days }) {
+export function StatusBadge({ days }) { //Shows the expiry status badge based on remaining days.
   if (days < 0)    return <span className="badge badge-expired">Expired</span>;
   if (days === 0)  return <span className="badge badge-critical">Today</span>;
   if (days <= 30)  return <span className="badge badge-warning" style={{ color: '#fbbf24' }}>Month 1</span>;
@@ -19,7 +19,7 @@ export function StatusBadge({ days }) {
   return               <span className="badge badge-good">Safe</span>;
 }
 
-export function DaysChip({ days }) {
+export function DaysChip({ days }) { //Displays how many days are left until the product expires.
   if (days < 0)   return <span style={{ color:'#94a3b8' }}>{Math.abs(days)}d ago</span>;
   if (days === 0) return <span style={{ color:'#f87171', fontWeight:700 }}>Today!</span>;
   if (days <= 3)  return <span style={{ color:'#f87171', fontWeight:700 }}>{days}d left</span>;
@@ -28,7 +28,7 @@ export function DaysChip({ days }) {
   return              <span style={{ color:'#86efac' }}>{days}d left</span>;
 }
 
-export function PriceCell({ product, onlyOriginal = false }) {
+export function PriceCell({ product, onlyOriginal = false }) { //Displays the product price with discounts applied.
   const { categoryDiscounts } = useProducts?.() || {};
   const days = MinHeap.daysRemaining(product.expiryDate);
   const cd = categoryDiscounts?.[product.category] || {};

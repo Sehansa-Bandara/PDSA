@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { MinHeap } from '../utils/MinHeap';
-import { bubbleSortByPrice } from '../utils/BubbleSort';
+import { bubbleSortByPrice, bubbleSortByPriceDesc } from '../utils/BubbleSort';
 import { catIcon, StatusBadge, DaysChip, PriceCell, ExpiryBar, CATEGORIES } from './shared';
 import AddProductModal from './AddProductModal';
 
@@ -11,7 +11,7 @@ const SORT_OPTS = [
   { v: 'expiry-asc',  l: 'Expiry (Soonest First)'  },
   { v: 'expiry-desc', l: 'Expiry (Latest First)'    },
   { v: 'price-asc',   l: 'Price ↑ (Bubble Sort)'   },
-  { v: 'price-desc',  l: 'Price ↓'                  },
+  { v: 'price-desc',  l: 'Price ↓ (Bubble Sort)'   },
   { v: 'name-asc',    l: 'Name A → Z'               },
 ];
 
@@ -42,13 +42,13 @@ export default function ProductList() {
     list = [...list];
     if (sort === 'expiry-asc') list.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
     if (sort === 'expiry-desc') list.sort((a, b) => new Date(b.expiryDate) - new Date(a.expiryDate));
-    if (sort === 'price-asc') list = bubbleSortByPrice(list); // 🫧 Bubble Sort O(n²)
-    if (sort === 'price-desc') list.sort((a, b) => b.price - a.price);
+    if (sort === 'price-asc')  list = bubbleSortByPrice(list);     
+    if (sort === 'price-desc') list = bubbleSortByPriceDesc(list); 
     if (sort === 'name-asc') list.sort((a, b) => a.name.localeCompare(b.name));
     return list;
   }, [getAllSorted, cat, status, sort]);
 
-  const confirmDel = () => {
+  const confirmDel = () => { //Removes a product from the Min Heap inventory.
     removeProduct(toDelete.id);
     notify(`"${toDelete.name}" deleted.`);
     setToDelete(null);
@@ -203,8 +203,8 @@ function FilterSelect({ id, label, value, onChange, options, isObj }) {
 function CategoryDiscountModal({ onClose }) {
   const { updateCategoryDiscount, categoryDiscounts } = useProducts();
   const [selectedCat, setSelectedCat] = useState(CATEGORIES[0]);
-  // const [range, setRange] = useState('All'); // Range removed as requested
-  const range = 'All'; // Hardcoded to 'All'
+  
+  const range = 'All'; 
   const [pct, setPct] = useState('');
 
   // Update pct when cat or range changes

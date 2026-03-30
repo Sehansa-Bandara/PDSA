@@ -108,5 +108,5 @@ function AlertSection({ title, items, color, borderColor, bg }) {
   );
 }
 
-// Needed since this file uses React.useState without importing React
+
 import React from 'react';

@@ -10,9 +10,8 @@ export default function Dashboard() {
   const [showAdd, setShowAdd] = useState(false);
   const [banner, setBanner]   = useState(null);
 
-  // Search state
   const [query,    setQuery]   = useState('');
-  const [mode,     setMode]    = useState('name'); // 'name' | 'id'
+  const [mode,     setMode]    = useState('name');
   const [results,  setResults] = useState(null);
   const [searched, setSearched]= useState(false);
 
@@ -28,15 +27,12 @@ export default function Dashboard() {
 
   const runSearch = () => {
     if (!query.trim()) return;
-    // Build a fresh BST from the current heap each search
     const allProducts = getAllSorted();
     if (mode === 'id') {
-      // BST keyed by ID — O(log n) exact match
       const tree = BST.fromArray(allProducts, 'id');
       const hit  = tree.searchById(query.trim());
       setResults(hit ? [hit] : []);
     } else {
-      // BST keyed by name — O(n) in-order substring search (alphabetical results)
       const tree = BST.fromArray(allProducts, 'name');
       setResults(tree.searchByName(query.trim()));
     }
@@ -49,7 +45,7 @@ export default function Dashboard() {
 
   return (
     <div style={S} className="animate-in">
-      {/* ─── Header ─── */}
+
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'1rem' }}>
         <div>
           <h1 style={{ fontSize:'1.9rem', fontWeight:900 }} className="gradient-text">Dashboard</h1>
@@ -65,7 +61,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ─── Banner ─── */}
+
       {banner && (
         <div style={{ padding:'0.75rem 1.25rem', borderRadius:10, fontSize:'0.875rem',
           background: banner.type === 'success' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
@@ -74,7 +70,7 @@ export default function Dashboard() {
         }}>{banner.msg}</div>
       )}
 
-      {/* ─── Search Bar ─── */}
+
       <div className="glass-card" style={{ padding:'1rem 1.25rem', display:'flex', flexWrap:'wrap', gap:'1rem', alignItems:'center' }}>
         <div style={{ display:'flex', borderRadius:10, overflow:'hidden', border:'1px solid rgba(99,102,241,0.25)', height:38 }}>
           {[['id','ID'],['name','Name']].map(([v,l]) => (
@@ -101,7 +97,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ─── Search Results ─── */}
+
       {searched && (
         <div className="animate-in" style={{ display:'flex', flexDirection:'column', gap:'1rem', padding:'0.5rem', background:'rgba(99,102,241,0.03)', borderRadius:16, border:'1px dashed rgba(99,102,241,0.2)' }}>
           <div style={{ fontSize:'0.8rem', color:'#64748b', padding:'0 0.5rem' }}>
@@ -122,7 +118,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ─── Stat cards ─── */}
+
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:'1.5rem' }}>
         {[
           { icon:'📦', label:'Total Products', val:stats.total,      col:'#818cf8' },
@@ -130,15 +126,13 @@ export default function Dashboard() {
         ].map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
-      {/* ─── Two-col row ─── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:'1.5rem' }}>
-        {/* Next expiring */}
         <div className="glass-card" style={{ padding:'1.5rem' }}>
           <h3 style={{ fontWeight:700, marginBottom:'1rem', display:'flex', alignItems:'center', gap: 8 }}>⏰ Next Expiring Item</h3>
           {peak ? <PeakCard product={peak} /> : <Empty text="No products found" />}
         </div>
 
-        {/* Expiring soon (30 days) */}
+
         <div className="glass-card" style={{ padding:'1.5rem' }}>
           <h3 style={{ fontWeight:700, marginBottom:'1rem', display:'flex', alignItems:'center', gap:8 }}>
             <span className="pulse-dot" style={{ background:'#fbbf24' }} />
@@ -170,7 +164,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ─── All Products Table ─── */}
+
       <div className="glass-card" style={{ padding:'1.5rem' }}>
         <h3 style={{ fontWeight:700, marginBottom:'1rem' }}>📦 Full Inventory</h3>
         <div style={{ overflowX:'auto' }}>

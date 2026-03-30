@@ -16,7 +16,7 @@ export default function AddProductModal({ onClose }) {
 
   const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: null })); };
 
-  const validate = () => {
+  const validate = () => { //form validations
     const e = {};
     if (!form.name.trim())                  e.name     = 'Name is required';
     if (!form.price || +form.price <= 0)    e.price    = 'Valid price required';
@@ -29,7 +29,7 @@ export default function AddProductModal({ onClose }) {
     ev.preventDefault();
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    addProduct({ 
+    addProduct({  //add the new product to the product list if validation passes
       ...form, 
       price: +form.price, 
       quantity: +form.quantity,

@@ -1,25 +1,25 @@
 <?php
 require_once 'discount_model.php';
 
-class DiscountController {
+class DiscountController { //handles API requests
     private $model;
 
     public function __construct($pdo) {
         $this->model = new DiscountModel($pdo);
     }
 
-    public function handleRequest($method, $category = null) {
+    public function handleRequest($method, $category = null) { // main function, handle API requests
         // Headers are now handled in index.php
         header("Content-Type: application/json");
 
-        switch ($method) {
+        switch ($method) { //check the request method and call the appropriate model function
             case 'GET':
                 echo json_encode($this->model->getAll());
                 break;
 
             case 'POST':
             case 'PUT':
-                $data = json_decode(file_get_contents("php://input"), true);
+                $data = json_decode(file_get_contents("php://input"), true);// Get JSON data from frontend
                 if (isset($data['category']) && isset($data['discount_percentage'])) {
                     if ($this->model->update($data['category'], $data['discount_percentage'])) {
                         echo json_encode(["message" => "Discount saved successfully"]);
